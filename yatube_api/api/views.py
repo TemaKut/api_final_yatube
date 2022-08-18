@@ -60,7 +60,7 @@ class FollowViewSet(viewsets.ViewSet):
     search_fields = ('=user',)
 
     def list(self, request):
-        queryset = Follow.objects.all()
+        queryset = Follow.objects.filter(user=request.user)
         serializer = FollowSerializer(queryset, many=True)
 
         return Response(serializer.data)
