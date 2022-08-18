@@ -1,6 +1,8 @@
 from rest_framework import viewsets, status
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from rest_framework import filters
 
 from django.shortcuts import get_object_or_404
 
@@ -53,7 +55,9 @@ class GroupViewSet(viewsets.ReadOnlyModelViewSet):
 
 class FollowViewSet(viewsets.ViewSet):
     """ Вьюсет подписок. """
-    permission_classes = (NotFollowSelf,)
+    permission_classes = (NotFollowSelf, IsAuthenticated)
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('=user',)
 
     def list(self, request):
         queryset = Follow.objects.all()
