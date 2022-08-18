@@ -5,8 +5,10 @@ from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 
 from posts.models import Post, Comment, Group, Follow
-from .serializers import PostSerializer, CommentSerializer, GroupSerializer, FollowSerializer
-from .permissions import IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly, NotFollowSelf
+from .serializers import (PostSerializer, CommentSerializer,
+                          GroupSerializer, FollowSerializer)
+from .permissions import (IsAuthenticatedOrReadOnly,
+                          IsAuthorOrReadOnly, NotFollowSelf)
 
 
 class PostsViewSet(viewsets.ModelViewSet):
