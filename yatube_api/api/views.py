@@ -57,7 +57,7 @@ class FollowViewSet(viewsets.ViewSet):
     """ Вьюсет подписок. """
     permission_classes = (NotFollowSelf, IsAuthenticated)
     filter_backends = (filters.SearchFilter,)
-    search_fields = ('=user',)
+    search_fields = ('=user', '=following')
 
     def list(self, request):
         queryset = Follow.objects.filter(user=request.user)
