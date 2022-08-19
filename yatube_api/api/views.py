@@ -59,9 +59,13 @@ class FollowViewSet(mixins.CreateModelMixin,
     """ Вьюсет подписок. """
     permission_classes = [IsAuthenticated, NotFollowSelf]
     serializer_class = FollowSerializer
-    queryset = Follow.objects.all()
     filter_backends = [filters.SearchFilter]
     search_fields = ['=following__username']
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = Follow.objects.filter(user=user)
+        return queryset
 
     def perform_create(self, serializer):
         """ Добавляем автодобавление пользователя в подписавшегося. """
