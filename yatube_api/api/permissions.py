@@ -1,4 +1,5 @@
 from rest_framework import permissions
+from rest_framework import serializers
 
 
 class IsAuthenticatedOrReadOnly(permissions.BasePermission):
@@ -34,7 +35,8 @@ class NotFollowSelf(permissions.BasePermission):
     def has_permission(self, request, view):
         if request.method == 'POST':
             if request.user.username == request.data.get('following'):
-                return False
+                raise serializers.ValidationError(
+                    'Нельзя подписываться на себя')
             return True
         else:
             return True

@@ -1,8 +1,8 @@
-from rest_framework import viewsets, status
+from rest_framework import viewsets
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import filters
+from rest_framework import mixins
 
 from django.shortcuts import get_object_or_404
 
@@ -53,24 +53,17 @@ class GroupViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = []
 
 
-class FollowViewSet(viewsets.ViewSet):
+class FollowViewSet(mixins.CreateModelMixin,
+                    mixins.ListModelMixin,
+                    viewsets.GenericViewSet):
     """ Вьюсет подписок. """
-    permission_classes = (NotFollowSelf, IsAuthenticated)
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('=user', '=following')
+    permission_classes = [IsAuthenticated, NotFollowSelf]
+    serializer_class = FollowSerializer
+    queryset = Follow.objects.all()
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['=following__username']
 
-    def list(self, request):
-        queryset = Follow.objects.filter(user=request.user)
-        serializer = FollowSerializer(queryset, many=True)
-
-        return Response(serializer.data)
-
-    def create(self, request):
-        serializer = FollowSerializer(data=request.data)
+    def perform_create(self, serializer):
+        """ Добавляем автодобавление пользователя в подписавшегося. """
         if serializer.is_valid():
-            serializer.save(
-                user=self.request.user,
-            )
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            serializer.save(user=self.request.user)
