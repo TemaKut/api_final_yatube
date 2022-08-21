@@ -9,16 +9,18 @@ from django.shortcuts import get_object_or_404
 from posts.models import Post, Comment, Group, Follow
 from .serializers import (PostSerializer, CommentSerializer,
                           GroupSerializer, FollowSerializer)
-from .permissions import (IsAuthenticatedOrReadOnly,
-                          IsAuthorOrReadOnly, NotFollowSelf)
+from .permissions import (
+    IsAuthenticatedAndIsAuthorOrReadOnly,
+    NotFollowSelf
+)
 
 
 class PostsViewSet(viewsets.ModelViewSet):
     """ Вью сет для публикаций. """
 
-    queryset = Post.objects.all()
+    queryset = Post.objects.all().select_related('author', 'group')
     serializer_class = PostSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
+    permission_classes = [IsAuthenticatedAndIsAuthorOrReadOnly]
     pagination_class = LimitOffsetPagination
 
     def perform_create(self, serializer):
@@ -31,11 +33,13 @@ class CommentsViewSet(viewsets.ModelViewSet):
     """ Вьюсет для комментариев к конкретному посту. """
 
     serializer_class = CommentSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
+    permission_classes = [IsAuthenticatedAndIsAuthorOrReadOnly]
 
     def get_queryset(self):
         post = get_object_or_404(Post, pk=self.kwargs.get('post_id'))
-        return Comment.objects.filter(post=post)
+        return Comment.objects.filter(post=post).select_related(
+            'post', 'author'
+        )
 
     def perform_create(self, serializer):
         """В момент отправки метода POST
@@ -50,7 +54,6 @@ class GroupViewSet(viewsets.ReadOnlyModelViewSet):
 
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
-    permission_classes = []
 
 
 class FollowViewSet(mixins.CreateModelMixin,
@@ -64,8 +67,10 @@ class FollowViewSet(mixins.CreateModelMixin,
 
     def get_queryset(self):
         user = self.request.user
-        queryset = Follow.objects.filter(user=user)
-        return queryset
+
+        return Follow.objects.filter(user=user).select_related(
+            'user', 'following'
+        )
 
     def perform_create(self, serializer):
         """ Добавляем автодобавление пользователя в подписавшегося. """
