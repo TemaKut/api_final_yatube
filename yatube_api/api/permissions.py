@@ -3,10 +3,10 @@ from rest_framework import serializers
 
 
 class IsAuthenticatedAndIsAuthorOrReadOnly(permissions.BasePermission):
-    """ 
+    """
     Тольк авторизованный пользователь может иметь доступ
     к незащищённым методам, остальные только читают.
-    Только автор поста может менять данные. 
+    Только автор поста может менять данные.
     """
 
     def has_permission(self, request, view):
