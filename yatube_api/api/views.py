@@ -1,17 +1,14 @@
-from rest_framework import viewsets
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import IsAuthenticated
-from rest_framework import filters
-from rest_framework import mixins
+from rest_framework import filters, mixins, viewsets
 
 from django.shortcuts import get_object_or_404
 
-from posts.models import Post, Comment, Group, Follow
+from posts.models import Post, Comment, Group, User
 from .serializers import (PostSerializer, CommentSerializer,
                           GroupSerializer, FollowSerializer)
 from .permissions import (
     IsAuthenticatedAndIsAuthorOrReadOnly,
-    NotFollowSelf
 )
 
 
@@ -60,17 +57,14 @@ class FollowViewSet(mixins.CreateModelMixin,
                     mixins.ListModelMixin,
                     viewsets.GenericViewSet):
     """ Вьюсет подписок. """
-    permission_classes = [IsAuthenticated, NotFollowSelf]
+    permission_classes = [IsAuthenticated]
     serializer_class = FollowSerializer
     filter_backends = [filters.SearchFilter]
     search_fields = ['=following__username']
 
     def get_queryset(self):
-        user = self.request.user
-
-        return Follow.objects.filter(user=user).select_related(
-            'user', 'following'
-        )
+        user = User.objects.get(username=self.request.user.username)
+        return user.follower.all()
 
     def perform_create(self, serializer):
         """ Добавляем автодобавление пользователя в подписавшегося. """
