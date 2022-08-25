@@ -1,10 +1,9 @@
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import filters, mixins, viewsets
-
 from django.shortcuts import get_object_or_404
 
-from posts.models import Post, Comment, Group, User
+from posts.models import Post, Comment, Group, Follow
 from .serializers import (PostSerializer, CommentSerializer,
                           GroupSerializer, FollowSerializer)
 from .permissions import (
@@ -34,6 +33,7 @@ class CommentsViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         post = get_object_or_404(Post, pk=self.kwargs.get('post_id'))
+
         return Comment.objects.filter(post=post).select_related(
             'post', 'author'
         )
@@ -53,9 +53,11 @@ class GroupViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = GroupSerializer
 
 
-class FollowViewSet(mixins.CreateModelMixin,
-                    mixins.ListModelMixin,
-                    viewsets.GenericViewSet):
+class FollowViewSet(
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet,
+):
     """ Вьюсет подписок. """
     permission_classes = [IsAuthenticated]
     serializer_class = FollowSerializer
@@ -63,8 +65,8 @@ class FollowViewSet(mixins.CreateModelMixin,
     search_fields = ['=following__username']
 
     def get_queryset(self):
-        user = User.objects.get(username=self.request.user.username)
-        return user.follower.all()
+
+        return Follow.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):
         """ Добавляем автодобавление пользователя в подписавшегося. """
