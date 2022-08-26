@@ -3,7 +3,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import filters, mixins, viewsets
 from django.shortcuts import get_object_or_404
 
-from posts.models import Post, Comment, Group, Follow
+from posts.models import Post, Group, User
 from .serializers import (PostSerializer, CommentSerializer,
                           GroupSerializer, FollowSerializer)
 from .permissions import (
@@ -32,11 +32,9 @@ class CommentsViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticatedAndIsAuthorOrReadOnly]
 
     def get_queryset(self):
-        post = get_object_or_404(Post, pk=self.kwargs.get('post_id'))
+        post = Post.objects.get(id=self.kwargs.get("post_id"))
 
-        return Comment.objects.filter(post=post).select_related(
-            'post', 'author'
-        )
+        return post.comments.all()
 
     def perform_create(self, serializer):
         """В момент отправки метода POST
@@ -65,8 +63,8 @@ class FollowViewSet(
     search_fields = ['=following__username']
 
     def get_queryset(self):
-
-        return Follow.objects.filter(user=self.request.user)
+        user = User.objects.get(id=self.request.user.id)
+        return user.follower.all()
 
     def perform_create(self, serializer):
         """ Добавляем автодобавление пользователя в подписавшегося. """
