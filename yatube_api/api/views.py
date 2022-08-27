@@ -63,8 +63,8 @@ class FollowViewSet(
     search_fields = ['=following__username']
 
     def get_queryset(self):
-        user = User.objects.get(id=self.request.user.id)
-        return user.follower.all()
+
+        return self.request.user.follower.all()
 
     def perform_create(self, serializer):
         """ Добавляем автодобавление пользователя в подписавшегося. """
