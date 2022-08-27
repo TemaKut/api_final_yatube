@@ -3,7 +3,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import filters, mixins, viewsets
 from django.shortcuts import get_object_or_404
 
-from posts.models import Post, Group, User
+from posts.models import Post, Group
 from .serializers import (PostSerializer, CommentSerializer,
                           GroupSerializer, FollowSerializer)
 from .permissions import (
